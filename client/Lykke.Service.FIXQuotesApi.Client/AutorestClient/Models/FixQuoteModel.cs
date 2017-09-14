@@ -5,28 +5,27 @@
 namespace Lykke.Service.FIXQuotesApi.Client.AutorestClient.Models
 {
     using Newtonsoft.Json;
-    using System.Collections.Generic;
 
-    public partial class IsAliveResponse
+    public partial class FixQuoteModel
     {
         /// <summary>
-        /// Initializes a new instance of the IsAliveResponse class.
+        /// Initializes a new instance of the FixQuoteModel class.
         /// </summary>
-        public IsAliveResponse()
+        public FixQuoteModel()
         {
           CustomInit();
         }
 
         /// <summary>
-        /// Initializes a new instance of the IsAliveResponse class.
+        /// Initializes a new instance of the FixQuoteModel class.
         /// </summary>
-        public IsAliveResponse(bool isDebug, string name = default(string), string version = default(string), string env = default(string), IList<IssueIndicator> issueIndicators = default(IList<IssueIndicator>))
+        public FixQuoteModel(System.DateTime fixingTime, System.DateTime tradeTime, double ask, double bid, string assetPair = default(string))
         {
-            Name = name;
-            Version = version;
-            Env = env;
-            IsDebug = isDebug;
-            IssueIndicators = issueIndicators;
+            AssetPair = assetPair;
+            FixingTime = fixingTime;
+            TradeTime = tradeTime;
+            Ask = ask;
+            Bid = bid;
             CustomInit();
         }
 
@@ -37,28 +36,28 @@ namespace Lykke.Service.FIXQuotesApi.Client.AutorestClient.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Name")]
-        public string Name { get; set; }
+        [JsonProperty(PropertyName = "AssetPair")]
+        public string AssetPair { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Version")]
-        public string Version { get; set; }
+        [JsonProperty(PropertyName = "FixingTime")]
+        public System.DateTime FixingTime { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Env")]
-        public string Env { get; set; }
+        [JsonProperty(PropertyName = "TradeTime")]
+        public System.DateTime TradeTime { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "IsDebug")]
-        public bool IsDebug { get; set; }
+        [JsonProperty(PropertyName = "Ask")]
+        public double Ask { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "IssueIndicators")]
-        public IList<IssueIndicator> IssueIndicators { get; set; }
+        [JsonProperty(PropertyName = "Bid")]
+        public double Bid { get; set; }
 
         /// <summary>
         /// Validate the object.
@@ -68,6 +67,7 @@ namespace Lykke.Service.FIXQuotesApi.Client.AutorestClient.Models
         /// </exception>
         public virtual void Validate()
         {
+            //Nothing to validate
         }
     }
 }

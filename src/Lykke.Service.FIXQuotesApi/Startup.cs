@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AzureStorage.Tables;
@@ -7,8 +6,12 @@ using Common.Log;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Logs;
+using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Service.FIXQuotesApi.Core;
+using Lykke.Service.FIXQuotesApi.Core.Domain.Models;
 using Lykke.Service.FIXQuotesApi.Modules;
+using Lykke.Service.FIXQuotesApi.Services;
+using Lykke.Service.FIXQuotesApi.Services.Middleware.Auth;
 using Lykke.SettingsReader;
 using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Builder;
@@ -18,7 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Lykke.Service.FIXQuotesApi
 {
-    internal sealed class Startup
+    public sealed class Startup
     {
         public IHostingEnvironment Environment { get; }
         public IContainer ApplicationContainer { get; set; }
@@ -48,8 +51,10 @@ namespace Lykke.Service.FIXQuotesApi
 
             services.AddSwaggerGen(options =>
             {
-                options.DefaultLykkeConfiguration("v1", "FIXQuotesApi API");
+                options.DefaultLykkeConfiguration("v1", "FIXQuotes API");
+                options.OperationFilter<ApiKeyHeaderOperationFilter>();
             });
+
 
 
 
@@ -59,6 +64,9 @@ namespace Lykke.Service.FIXQuotesApi
                 : HttpSettingsLoader.Load<AppSettings>(Configuration.GetValue<string>("SettingsUrl"));
 
             var log = CreateLogWithSlack(services, appSettings);
+
+            services.AddAuthentication(KeyAuthHandler.AuthScheme).AddScheme<KeyAuthOptions, KeyAuthHandler>(KeyAuthHandler.AuthScheme, o => o.Secret = appSettings.FIXQuotesApiService.Secret);
+
 
             builder.RegisterModule(new ServiceModule(appSettings.FIXQuotesApiService, log));
             builder.Populate(services);
@@ -74,28 +82,32 @@ namespace Lykke.Service.FIXQuotesApi
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseLykkeMiddleware("FIXQuotesApi", ex => new {Message = "Technical problem"});
+            app.UseLykkeMiddleware("FIXQuotesApi", ex => new { Message = "Technical problem" });
 
             app.UseMvc();
             app.UseSwagger();
             app.UseSwaggerUi();
             app.UseStaticFiles();
+            app.UseAuthentication();
 
+            appLifetime.ApplicationStarted.Register(StartApplication);
             appLifetime.ApplicationStopping.Register(StopApplication);
             appLifetime.ApplicationStopped.Register(CleanUp);
         }
 
+        private void StartApplication()
+        {
+            ApplicationContainer.Resolve<QuoteUpdater>();
+            ApplicationContainer.Resolve<RabbitMqSubscriber<FixQuotePack>>().Start();
+        }
+
         private void StopApplication()
         {
-            // TODO: Implement your shutdown logic here. 
-            // Service still can recieve and process requests here, so take care about it.
+
         }
 
         private void CleanUp()
         {
-            // TODO: Implement your clean up logic here.
-            // Service can't receive and process requests here, so you can destroy all resources
-
             ApplicationContainer.Dispose();
         }
 

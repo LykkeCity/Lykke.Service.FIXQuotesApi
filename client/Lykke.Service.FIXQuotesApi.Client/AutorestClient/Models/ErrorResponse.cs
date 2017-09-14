@@ -4,14 +4,8 @@
 
 namespace Lykke.Service.FIXQuotesApi.Client.AutorestClient.Models
 {
-    using Lykke.Service;
-    using Lykke.Service.FIXQuotesApi;
-    using Lykke.Service.FIXQuotesApi.Client;
-    using Lykke.Service.FIXQuotesApi.Client.AutorestClient;
     using Newtonsoft.Json;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Linq;
 
     public partial class ErrorResponse
     {
