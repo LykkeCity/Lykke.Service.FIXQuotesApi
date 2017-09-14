@@ -10,11 +10,11 @@ namespace Lykke.Service.FIXQuotesApi.Services
     public abstract class FixQuoteManager : IFixQuoteManager
     {
         private const int DepthOfSearch = 7;
-        private readonly IQuoteRepository _repository;
+        private readonly IFixQuoteRepository _repository;
         protected readonly ITimeService TimeService;
         private readonly ILog _log;
 
-        protected FixQuoteManager(IQuoteRepository repository,ITimeService timeService, ILog log)
+        protected FixQuoteManager(IFixQuoteRepository repository,ITimeService timeService, ILog log)
         {
             _repository = repository;
             TimeService = timeService;

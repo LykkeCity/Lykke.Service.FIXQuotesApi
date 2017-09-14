@@ -10,7 +10,7 @@ namespace Lykke.Service.FIXQuotesApi.Services
 {
     public sealed class FixQuoteManagerDelayed : FixQuoteManager, IFixQuoteManagerDelayed
     {
-        public FixQuoteManagerDelayed(IQuoteRepository repository, ILog log, ITimeService timeService) : base(repository, timeService, log)
+        public FixQuoteManagerDelayed(IFixQuoteRepository repository, ILog log, ITimeService timeService) : base(repository, timeService, log)
         {
         }
 

@@ -11,15 +11,16 @@ using Lykke.Service.FIXQuotesApi.Core;
 using Lykke.Service.FIXQuotesApi.Core.Domain.Models;
 using Lykke.Service.FIXQuotesApi.Core.Services;
 using Lykke.Service.FIXQuotesApi.Services;
+using Lykke.SettingsReader;
 
 namespace Lykke.Service.FIXQuotesApi.Modules
 {
     internal class ServiceModule : Module
     {
-        private readonly FIXQuotesApiSettings _settings;
+        private readonly IReloadingManager<FIXQuotesApiSettings> _settings;
         private readonly ILog _log;
 
-        public ServiceModule(FIXQuotesApiSettings settings, ILog log)
+        public ServiceModule(IReloadingManager<FIXQuotesApiSettings> settings, ILog log)
         {
             _settings = settings;
             _log = log;
@@ -61,9 +62,9 @@ namespace Lykke.Service.FIXQuotesApi.Modules
         {
             var reciverRabbitMqSettings = new RabbitMqSubscriptionSettings
             {
-                ConnectionString = _settings.FixQuoteFeedRabbit.ConnectionString,
-                QueueName = _settings.FixQuoteFeedRabbit.QueueName,
-                ExchangeName = _settings.FixQuoteFeedRabbit.ExchangeName,
+                ConnectionString = _settings.CurrentValue.FixQuoteFeedRabbit.ConnectionString,
+                QueueName = _settings.CurrentValue.FixQuoteFeedRabbit.QueueName,
+                ExchangeName = _settings.CurrentValue.FixQuoteFeedRabbit.ExchangeName,
                 IsDurable = false
             };
 
@@ -83,9 +84,9 @@ namespace Lykke.Service.FIXQuotesApi.Modules
         private void RegisterAzureRepositories(ContainerBuilder builder)
         {
             builder.RegisterType<FixQuoteRepository>()
-                .As<IQuoteRepository>();
-
-            builder.Register(c => new AzureTableStorage<FixQuoteEntity>(_settings.Db.BackupConnString, "fixQuotesBackup", _log))
+                .As<IFixQuoteRepository>();
+            var nested = _settings.Nested(c => c.Db.BackupConnString);
+            builder.Register(c => AzureTableStorage<FixQuoteEntity>.Create(nested, "fixQuotesBackup", _log))
                 .As<INoSQLTableStorage<FixQuoteEntity>>();
         }
     }

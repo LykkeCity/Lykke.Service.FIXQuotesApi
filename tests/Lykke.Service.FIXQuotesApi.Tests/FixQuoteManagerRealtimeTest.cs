@@ -15,7 +15,7 @@ namespace Lykke.Service.FIXQuotesApi.Tests
         public override void Setup()
         {
             base.Setup();
-            _manager = new FixQuoteManagerRealtime(_repositoryMock, _logToConsole, _timeServiceMock);
+            Manager = new FixQuoteManagerRealtime(RepositoryMock, LogToConsole, TimeServiceMock);
         }
 
 
@@ -29,9 +29,9 @@ namespace Lykke.Service.FIXQuotesApi.Tests
             var f = DateTime.Today.AddHours(2);
             SetupQuote(f, t);
             SetupQuote(f.AddDays(-1), t.AddDays(-1));
-            _timeServiceMock.UtcNow.Returns(d);
+            TimeServiceMock.UtcNow.Returns(d);
 
-            var result = await _manager.GetAll();
+            var result = await Manager.GetAll();
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Count, Is.EqualTo(1));

@@ -57,18 +57,15 @@ namespace Lykke.Service.FIXQuotesApi
 
 
 
-
             var builder = new ContainerBuilder();
-            var appSettings = Environment.IsDevelopment()
-                ? Configuration.Get<AppSettings>()
-                : HttpSettingsLoader.Load<AppSettings>(Configuration.GetValue<string>("SettingsUrl"));
+            var appSettings = Configuration.LoadSettings<AppSettings>();
 
             var log = CreateLogWithSlack(services, appSettings);
 
-            services.AddAuthentication(KeyAuthHandler.AuthScheme).AddScheme<KeyAuthOptions, KeyAuthHandler>(KeyAuthHandler.AuthScheme, o => o.Secret = appSettings.FIXQuotesApiService.Secret);
+            services.AddAuthentication(KeyAuthHandler.AuthScheme).AddScheme<KeyAuthOptions, KeyAuthHandler>(KeyAuthHandler.AuthScheme, o => o.Secret = appSettings.CurrentValue.FIXQuotesApiService.Secret);
 
 
-            builder.RegisterModule(new ServiceModule(appSettings.FIXQuotesApiService, log));
+            builder.RegisterModule(new ServiceModule(appSettings.Nested(x => x.FIXQuotesApiService), log));
             builder.Populate(services);
             ApplicationContainer = builder.Build();
 
@@ -111,21 +108,23 @@ namespace Lykke.Service.FIXQuotesApi
             ApplicationContainer.Dispose();
         }
 
-        private static ILog CreateLogWithSlack(IServiceCollection services, AppSettings settings)
+        private static ILog CreateLogWithSlack(IServiceCollection services, IReloadingManager<AppSettings> settings)
         {
             var consoleLogger = new LogToConsole();
             var aggregateLogger = new AggregateLogger();
 
             aggregateLogger.AddLog(consoleLogger);
-
+           
             // Creating slack notification service, which logs own azure queue processing messages to aggregate log
             var slackService = services.UseSlackNotificationsSenderViaAzureQueue(new AzureQueueIntegration.AzureQueueSettings
             {
-                ConnectionString = settings.SlackNotifications.AzureQueue.ConnectionString,
-                QueueName = settings.SlackNotifications.AzureQueue.QueueName
+                ConnectionString = settings.CurrentValue.SlackNotifications.AzureQueue.ConnectionString,
+                QueueName = settings.CurrentValue.SlackNotifications.AzureQueue.QueueName
             }, aggregateLogger);
 
-            var dbLogConnectionString = settings.FIXQuotesApiService.Db.LogsConnString;
+            var dbLogConnectionStringManager = settings.Nested(x => x.FIXQuotesApiService.Db.LogsConnString);
+            var dbLogConnectionString = dbLogConnectionStringManager.CurrentValue;
+
 
             // Creating azure storage logger, which logs own messages to concole log
             if (!string.IsNullOrEmpty(dbLogConnectionString) && !(dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}")))
@@ -135,7 +134,7 @@ namespace Lykke.Service.FIXQuotesApi
 
                 var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
                     appName,
-                    AzureTableStorage<LogEntity>.Create(() => dbLogConnectionString, "FIXQuotesApiLog", consoleLogger),
+                    AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "FIXQuotesApiLog", consoleLogger),
                     consoleLogger);
 
                 var slackNotificationsManager = new LykkeLogToAzureSlackNotificationsManager(appName, slackService, consoleLogger);

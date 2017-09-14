@@ -8,7 +8,7 @@ using Swashbuckle.SwaggerGen.Annotations;
 
 namespace Lykke.Service.FIXQuotesApi.Controllers
 {
-    // NOTE: See https://lykkex.atlassian.net/wiki/spaces/LKEWALLET/pages/35755585/Add+your+app+to+Monitoring
+    // NOTE: See https://lykke.atlassian.net/wiki/spaces/LKEWALLET/pages/35755585/Add+your+app+to+Monitoring
     [Route("api/[controller]")]
     public class IsAliveController : Controller
     {

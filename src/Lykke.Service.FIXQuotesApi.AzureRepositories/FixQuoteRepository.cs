@@ -9,7 +9,7 @@ using MoreLinq;
 
 namespace Lykke.Service.FIXQuotesApi.AzureRepositories
 {
-    public class FixQuoteRepository : IQuoteRepository
+    public class FixQuoteRepository : IFixQuoteRepository
     {
         private readonly INoSQLTableStorage<FixQuoteEntity> _storage;
 

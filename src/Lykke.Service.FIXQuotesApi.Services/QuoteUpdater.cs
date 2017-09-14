@@ -11,10 +11,10 @@ namespace Lykke.Service.FIXQuotesApi.Services
     /// </summary>
     public sealed class QuoteUpdater
     {
-        private readonly IQuoteRepository _repository;
+        private readonly IFixQuoteRepository _repository;
         private readonly ILog _log;
 
-        public QuoteUpdater(IMessageConsumer<FixQuotePack> messageConsumer, IQuoteRepository repository, ILog log)
+        public QuoteUpdater(IMessageConsumer<FixQuotePack> messageConsumer, IFixQuoteRepository repository, ILog log)
         {
             messageConsumer.Subscribe(QuoteReceivedCallback);
             _repository = repository;

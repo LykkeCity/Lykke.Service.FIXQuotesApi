@@ -11,16 +11,16 @@ namespace Lykke.Service.FIXQuotesApi.Tests
 {
     internal abstract  class FixQuoteManagerTestBase
     {
-        protected IFixQuoteManager _manager;
-        protected IQuoteRepository _repositoryMock;
-        protected ITimeService _timeServiceMock;
-        protected LogToConsole _logToConsole;
+        protected IFixQuoteManager Manager;
+        protected IFixQuoteRepository RepositoryMock;
+        protected ITimeService TimeServiceMock;
+        protected LogToConsole LogToConsole;
 
         public virtual void Setup()
         {
-            _repositoryMock = Substitute.For<IQuoteRepository>();
-            _timeServiceMock = Substitute.For<ITimeService>();
-            _logToConsole = new LogToConsole();
+            RepositoryMock = Substitute.For<IFixQuoteRepository>();
+            TimeServiceMock = Substitute.For<ITimeService>();
+            LogToConsole = new LogToConsole();
         }
 
         protected void SetupQuote(DateTime fixingTime, DateTime tradeTime)
@@ -30,7 +30,7 @@ namespace Lykke.Service.FIXQuotesApi.Tests
                 FixingTime = fixingTime,
                 TradeTime = tradeTime
             };
-            _repositoryMock.GetAllAsync(fixingTime.Date).Returns(Task.FromResult<IReadOnlyCollection<FixQuoteModel>>(new[] { q }));
+            RepositoryMock.GetAllAsync(fixingTime.Date).Returns(Task.FromResult<IReadOnlyCollection<FixQuoteModel>>(new[] { q }));
         }
     }
 }

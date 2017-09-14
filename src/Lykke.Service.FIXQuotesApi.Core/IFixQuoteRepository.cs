@@ -5,7 +5,7 @@ using Lykke.Service.FIXQuotesApi.Core.Domain.Models;
 
 namespace Lykke.Service.FIXQuotesApi.Core
 {
-    public interface IQuoteRepository
+    public interface IFixQuoteRepository
     {
         Task<IReadOnlyCollection<FixQuoteModel>> GetAllAsync(DateTime date);
         Task<FixQuoteModel> GetById(DateTime date, string id);
