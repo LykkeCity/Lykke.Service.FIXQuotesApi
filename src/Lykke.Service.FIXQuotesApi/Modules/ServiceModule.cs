@@ -65,19 +65,17 @@ namespace Lykke.Service.FIXQuotesApi.Modules
                 ConnectionString = _settings.CurrentValue.FixQuoteFeedRabbit.ConnectionString,
                 QueueName = _settings.CurrentValue.FixQuoteFeedRabbit.QueueName,
                 ExchangeName = _settings.CurrentValue.FixQuoteFeedRabbit.ExchangeName,
-                IsDurable = false
+                IsDurable = true
             };
 
-            var subscriber = new RabbitMqSubscriber<FixQuotePack>(reciverRabbitMqSettings,
-                    new ResilientErrorHandlingStrategy(_log, reciverRabbitMqSettings, TimeSpan.FromSeconds(10)))
-                .SetMessageDeserializer(new JsonMessageDeserializer<FixQuotePack>())
-                .SetMessageReadStrategy(new MessageReadWithTemporaryQueueStrategy())
-                .SetLogger(_log);
-
-            builder.Register(c => subscriber)
-                .As<IMessageConsumer<FixQuotePack>>()
-                .AsSelf()
-                .SingleInstance();
+            builder.Register(c => new RabbitMqSubscriber<FixQuotePack>(reciverRabbitMqSettings,
+                            new ResilientErrorHandlingStrategy(_log, reciverRabbitMqSettings, TimeSpan.FromSeconds(10)))
+                        .SetMessageDeserializer(new JsonMessageDeserializer<FixQuotePack>())
+                        .SetMessageReadStrategy(new MessageReadWithTemporaryQueueStrategy())
+                        .SetLogger(_log))
+                    .As<IMessageConsumer<FixQuotePack>>()
+                    .AsSelf()
+                    .SingleInstance();
         }
 
 
