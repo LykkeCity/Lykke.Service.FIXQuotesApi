@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AzureStorage.Tables;
@@ -95,7 +96,7 @@ namespace Lykke.Service.FIXQuotesApi
         private void StartApplication()
         {
             ApplicationContainer.Resolve<QuoteUpdater>();
-            ApplicationContainer.Resolve<RabbitMqSubscriber<FixQuotePack>>().Start();
+            ApplicationContainer.Resolve<RabbitMqSubscriber<IReadOnlyCollection<FixQuoteModel>>>().Start();
         }
 
         private void StopApplication()

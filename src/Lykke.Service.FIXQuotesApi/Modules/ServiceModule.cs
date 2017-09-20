@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Autofac;
 using AzureStorage;
 using AzureStorage.Tables;
@@ -68,12 +69,12 @@ namespace Lykke.Service.FIXQuotesApi.Modules
                 IsDurable = true
             };
 
-            builder.Register(c => new RabbitMqSubscriber<FixQuotePack>(reciverRabbitMqSettings,
+            builder.Register(c => new RabbitMqSubscriber<IReadOnlyCollection<FixQuoteModel>>(reciverRabbitMqSettings,
                             new ResilientErrorHandlingStrategy(_log, reciverRabbitMqSettings, TimeSpan.FromSeconds(10)))
-                        .SetMessageDeserializer(new JsonMessageDeserializer<FixQuotePack>())
+                        .SetMessageDeserializer(new JsonMessageDeserializer<IReadOnlyCollection<FixQuoteModel>>())
                         .SetMessageReadStrategy(new MessageReadWithTemporaryQueueStrategy())
                         .SetLogger(_log))
-                    .As<IMessageConsumer<FixQuotePack>>()
+                    .As<IMessageConsumer<IReadOnlyCollection<FixQuoteModel>>>()
                     .AsSelf()
                     .SingleInstance();
         }

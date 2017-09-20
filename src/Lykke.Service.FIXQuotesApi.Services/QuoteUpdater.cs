@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Common;
 using Common.Log;
 using Lykke.Service.FIXQuotesApi.Core;
@@ -14,21 +15,21 @@ namespace Lykke.Service.FIXQuotesApi.Services
         private readonly IFixQuoteRepository _repository;
         private readonly ILog _log;
 
-        public QuoteUpdater(IMessageConsumer<FixQuotePack> messageConsumer, IFixQuoteRepository repository, ILog log)
+        public QuoteUpdater(IMessageConsumer<IReadOnlyCollection<FixQuoteModel>> messageConsumer, IFixQuoteRepository repository, ILog log)
         {
             messageConsumer.Subscribe(QuoteReceivedCallback);
             _repository = repository;
             _log = log;
         }
 
-        private async Task QuoteReceivedCallback(FixQuotePack quotePack)
+        private async Task QuoteReceivedCallback(IReadOnlyCollection<FixQuoteModel> quotePack)
         {
-            if (quotePack.Quotes == null || quotePack.Quotes.Length == 0)
+            if (quotePack == null || quotePack.Count == 0)
             {
                 await _log.WriteWarningAsync(nameof(QuoteUpdater), nameof(QuoteReceivedCallback),
                     "Received a quote pack", "The quote pack contains no quotes");
             }
-            await _repository.SaveAsync(quotePack.Quotes);
+            await _repository.SaveAsync(quotePack);
         }
     }
 }
