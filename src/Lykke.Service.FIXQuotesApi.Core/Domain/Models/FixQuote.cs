@@ -2,7 +2,7 @@
 
 namespace Lykke.Service.FIXQuotesApi.Core.Domain.Models
 {
-    public sealed class FixQuoteModel
+    public sealed class FixQuote
     {
         /// <summary>
         /// An unique asset ID

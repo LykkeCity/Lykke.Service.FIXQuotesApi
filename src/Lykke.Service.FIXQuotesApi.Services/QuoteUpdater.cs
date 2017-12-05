@@ -15,14 +15,14 @@ namespace Lykke.Service.FIXQuotesApi.Services
         private readonly IFixQuoteRepository _repository;
         private readonly ILog _log;
 
-        public QuoteUpdater(IMessageConsumer<IReadOnlyCollection<FixQuoteModel>> messageConsumer, IFixQuoteRepository repository, ILog log)
+        public QuoteUpdater(IMessageConsumer<IReadOnlyCollection<FixQuote>> messageConsumer, IFixQuoteRepository repository, ILog log)
         {
             messageConsumer.Subscribe(QuoteReceivedCallback);
             _repository = repository;
             _log = log;
         }
 
-        private async Task QuoteReceivedCallback(IReadOnlyCollection<FixQuoteModel> quotePack)
+        private async Task QuoteReceivedCallback(IReadOnlyCollection<FixQuote> quotePack)
         {
             if (quotePack == null || quotePack.Count == 0)
             {

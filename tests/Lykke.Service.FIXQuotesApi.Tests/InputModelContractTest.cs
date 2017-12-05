@@ -15,7 +15,7 @@ namespace Lykke.Service.FIXQuotesApi.Tests
         [Test]
         public void ShouldDeserializeJson()
         {
-            var des = new JsonMessageDeserializer<IReadOnlyCollection<FixQuoteModel>>();
+            var des = new JsonMessageDeserializer<IReadOnlyCollection<FixQuote>>();
             var stream = Encoding.ASCII.GetBytes(InputMode);
             var model = des.Deserialize(stream);
             Assert.That(model, Is.Not.Null);

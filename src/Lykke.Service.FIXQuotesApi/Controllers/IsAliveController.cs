@@ -4,7 +4,7 @@ using System.Net;
 using Lykke.Service.FIXQuotesApi.Core.Services;
 using Lykke.Service.FIXQuotesApi.Models;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.SwaggerGen.Annotations;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Service.FIXQuotesApi.Controllers
 {

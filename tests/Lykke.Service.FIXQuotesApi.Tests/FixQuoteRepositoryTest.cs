@@ -3,34 +3,36 @@ using System;
 using System.Threading.Tasks;
 using AzureStorage;
 using AzureStorage.Tables;
-using Common.Log;
 using Lykke.Service.FIXQuotesApi.AzureRepositories;
 using Lykke.Service.FIXQuotesApi.Core.Domain.Models;
 using NUnit.Framework;
 using System.Linq;
+using Common.Log;
+using Lykke.SettingsReader;
+using NSubstitute;
 
 namespace Lykke.Service.FIXQuotesApi.Tests
 {
-    [TestFixture(Category = "Integration"), Explicit]
+    [TestFixture]
     public class FixQuoteRepositoryTest
     {
         private INoSQLTableStorage<FixQuoteEntity> _storage;
         private FixQuoteRepository _repository;
 
-        private readonly FixQuoteModel _rur = new FixQuoteModel
+        private readonly FixQuote _rur = new FixQuote
         {
             Ask = 1,
             Bid = 2,
-            AssetPair = "rur",
+            AssetPair = "RUR",
             TradeTime = DateTime.Now,
             FixingTime = DateTime.Now.AddDays(-1)
         };
 
-        private readonly FixQuoteModel _usd = new FixQuoteModel
+        private readonly FixQuote _usd = new FixQuote
         {
             Ask = 3,
             Bid = 4,
-            AssetPair = "usd",
+            AssetPair = "USD",
             TradeTime = DateTime.Now,
             FixingTime = DateTime.Now.AddDays(-1)
         };
@@ -38,18 +40,8 @@ namespace Lykke.Service.FIXQuotesApi.Tests
         [SetUp]
         public async Task SetUp()
         {
-#pragma warning disable 618
-            _storage = new AzureTableStorage<FixQuoteEntity>("UseDevelopmentStorage=true", "testTable", new LogToConsole());
-#pragma warning restore 618
+            _storage = new NoSqlTableInMemory<FixQuoteEntity>();
             _repository = new FixQuoteRepository(_storage);
-            await Cleanup();
-        }
-
-        [TearDown]
-        public async Task TearDown()
-        {
-
-            await Cleanup();
         }
 
         [Test]
@@ -75,8 +67,8 @@ namespace Lykke.Service.FIXQuotesApi.Tests
         {
             var quotes = new[]
             {
-                new FixQuoteEntity("rur",1,2,DateTime.Now, DateTime.Now.AddDays(1)),
-                new FixQuoteEntity("usd",1,2,DateTime.Now, DateTime.Now.AddDays(1))
+                new FixQuoteEntity("RUR",1,2,DateTime.Now, DateTime.Now.AddDays(1)),
+                new FixQuoteEntity("USD",1,2,DateTime.Now, DateTime.Now.AddDays(1))
             };
             await _storage.InsertAsync(quotes);
 
@@ -87,8 +79,8 @@ namespace Lykke.Service.FIXQuotesApi.Tests
             Assert.That(resutl.Count(s => s.AssetPair == _usd.AssetPair), Is.EqualTo(1));
         }
 
-        [TestCase("usd", "rur")]
-        [TestCase("rur", "usd")]
+        [TestCase("USD", "RUR")]
+        [TestCase("RUR", "USD")]
         public async Task ShouldGetById(string id1, string id2)
         {
             var quotes = new[]
@@ -104,10 +96,27 @@ namespace Lykke.Service.FIXQuotesApi.Tests
             Assert.That(resutl.AssetPair == id1, Is.True);
         }
 
-        private async Task Cleanup()
+        [Test]
+        public async Task Convert()
         {
-            await _storage.DeleteIfExistAsync(FixQuoteEntity.ToPartitionKey(DateTime.Now), FixQuoteEntity.ToRowKey(_rur.AssetPair));
-            await _storage.DeleteIfExistAsync(FixQuoteEntity.ToPartitionKey(DateTime.Now), FixQuoteEntity.ToRowKey(_usd.AssetPair));
+            var rm = Substitute.For<IReloadingManager<string>>();
+            rm.Reload().Returns(Task.FromResult("DefaultEndpointsProtocol=https;AccountName=lkedevshared;AccountKey=deMBXlOj0telRE7poKY+2P9MwPcSsOJ+1IUqG6xoQ3kdDAMhxzvh22zKAXnlaKyPeF0gpbzgK4k7M9ZLdlTx+w=="));
+            var storage = AzureTableStorage<FixQuoteEntity>.Create(rm, "fixQuotesBackup", new LogToConsole());
+            var from = new DateTime(2017, 09, 01);
+            for (; from < DateTime.Today.AddDays(1); from = from.AddDays(1))
+            {
+                var part = FixQuoteEntity.ToPartitionKey(from);
+
+                var quotes = storage[part];
+                foreach (var quote in quotes)
+                {
+                    var oldKey = quote.RowKey;
+                    quote.RowKey = oldKey.ToUpperInvariant();
+                    quote.Id = quote.RowKey;
+                    await storage.InsertAsync(quote);
+                    var deleted = await storage.DeleteAsync(part, oldKey);
+                }
+            }
         }
     }
 }

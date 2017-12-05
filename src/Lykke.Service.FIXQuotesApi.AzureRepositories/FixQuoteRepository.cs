@@ -19,10 +19,10 @@ namespace Lykke.Service.FIXQuotesApi.AzureRepositories
             _storage = storage;
         }
 
-        public async Task<IReadOnlyCollection<FixQuoteModel>> GetAllAsync(DateTime date)
+        public async Task<IReadOnlyCollection<FixQuote>> GetAllAsync(DateTime date)
         {
             var enitites = await _storage.GetDataAsync(FixQuoteEntity.ToPartitionKey(date));
-            return enitites.Select(e => new FixQuoteModel
+            return enitites.Select(e => new FixQuote
             {
                 Ask = e.Ask,
                 Bid = e.Bid,
@@ -32,14 +32,14 @@ namespace Lykke.Service.FIXQuotesApi.AzureRepositories
             }).ToArray();
         }
 
-        public async Task<FixQuoteModel> GetById(DateTime date, string id)
+        public async Task<FixQuote> GetById(DateTime date, string assetPair)
         {
-            id = id.ToLowerInvariant();
+            assetPair = assetPair.ToUpperInvariant();
             var entity =
-                await _storage.GetDataAsync(FixQuoteEntity.ToPartitionKey(date), FixQuoteEntity.ToRowKey(id));
+                await _storage.GetDataAsync(FixQuoteEntity.ToPartitionKey(date), FixQuoteEntity.ToRowKey(assetPair));
             if (entity != null)
             {
-                return new FixQuoteModel
+                return new FixQuote
                 {
                     Ask = entity.Ask,
                     Bid = entity.Bid,
@@ -51,10 +51,10 @@ namespace Lykke.Service.FIXQuotesApi.AzureRepositories
             return null;
         }
 
-        public async Task SaveAsync(IEnumerable<FixQuoteModel> quotes)
+        public async Task SaveAsync(IEnumerable<FixQuote> quotes)
         {
             const int batchSize = 100;
-            var entities = quotes.Select(q => new FixQuoteEntity(q.AssetPair.ToLowerInvariant(), q.Ask, q.Bid, q.FixingTime, q.TradeTime));
+            var entities = quotes.Select(q => new FixQuoteEntity(q.AssetPair.ToUpperInvariant(), q.Ask, q.Bid, q.FixingTime, q.TradeTime));
             foreach (var batch in entities.Batch(batchSize))
             {
                 await _storage.InsertOrMergeBatchAsync(batch);

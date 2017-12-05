@@ -31,7 +31,7 @@ namespace Lykke.Service.FIXQuotesApi.Tests
             SetupQuote(f.AddDays(-1), t.AddDays(-1));
             TimeServiceMock.UtcNow.Returns(d);
 
-            var result = await Manager.GetAll();
+            var result = await Manager.GetAll(DateTime.Today);
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Count, Is.EqualTo(1));

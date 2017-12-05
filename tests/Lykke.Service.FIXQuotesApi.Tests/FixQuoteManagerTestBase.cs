@@ -25,12 +25,12 @@ namespace Lykke.Service.FIXQuotesApi.Tests
 
         protected void SetupQuote(DateTime fixingTime, DateTime tradeTime)
         {
-            var q = new FixQuoteModel
+            var q = new FixQuote
             {
                 FixingTime = fixingTime,
                 TradeTime = tradeTime
             };
-            RepositoryMock.GetAllAsync(fixingTime.Date).Returns(Task.FromResult<IReadOnlyCollection<FixQuoteModel>>(new[] { q }));
+            RepositoryMock.GetAllAsync(fixingTime.Date).Returns(Task.FromResult<IReadOnlyCollection<FixQuote>>(new[] { q }));
         }
     }
 }

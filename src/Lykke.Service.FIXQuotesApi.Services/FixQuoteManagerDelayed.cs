@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
@@ -14,24 +15,24 @@ namespace Lykke.Service.FIXQuotesApi.Services
         {
         }
 
-        public override async Task<IReadOnlyCollection<FixQuoteModel>> GetAll()
+        public override async Task<IReadOnlyCollection<FixQuote>> GetAll(DateTime date)
         {
             var now = TimeService.UtcNow;
-            var todaysQuotes = await GetAllOnT();
+            var todaysQuotes = await GetAllImpl(date);
             if (todaysQuotes.Any(q => q.TradeTime > now))
             {
-                return await GetAllOnTMinusOne();
+                return await GetAllImpl(now.Date.AddDays(-1));
             }
             return todaysQuotes;
         }
 
-        public override async Task<FixQuoteModel> GetById(string id)
+        public override async Task<FixQuote> GetById(DateTime date, string assetPair)
         {
             var now = TimeService.UtcNow;
-            var todayQuote = await GetByIdOnT(id);
+            var todayQuote = await GetAllImpl(date, assetPair);
             if (todayQuote?.TradeTime > now)
             {
-                return await GetByIdOnTMinusOne(id);
+                return await GetAllImpl(now.Date.AddDays(-1), assetPair);
             }
             return todayQuote;
         }

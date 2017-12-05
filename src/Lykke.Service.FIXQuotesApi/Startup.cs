@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Lykke.Service.FIXQuotesApi
 {
@@ -47,15 +49,14 @@ namespace Lykke.Service.FIXQuotesApi
             services.AddMvc()
                 .AddJsonOptions(options =>
                 {
-                    options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver();
+                    options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
                 });
 
             services.AddSwaggerGen(options =>
             {
                 options.DefaultLykkeConfiguration("v1", "FIXQuotes API");
-                options.OperationFilter<ApiKeyHeaderOperationFilter>();
+                options.AddSecurityDefinition("CustomScheme", new ApiKeyScheme() { In = "header", Description = "Please insert API key into field", Name = "Authorization", Type = "apiKey" });
             });
-
 
 
             var builder = new ContainerBuilder();
@@ -83,8 +84,15 @@ namespace Lykke.Service.FIXQuotesApi
             app.UseLykkeMiddleware("FIXQuotesApi", ex => new { Message = "Technical problem" });
 
             app.UseMvc();
-            app.UseSwagger();
-            app.UseSwaggerUi();
+            app.UseSwagger(c =>
+            {
+                c.PreSerializeFilters.Add((swagger, httpReq) => swagger.Host = httpReq.Host.Value);
+            });
+            app.UseSwaggerUI(x =>
+            {
+                x.RoutePrefix = "swagger/ui";
+                x.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+            });
             app.UseStaticFiles();
             app.UseAuthentication();
 
@@ -96,7 +104,7 @@ namespace Lykke.Service.FIXQuotesApi
         private void StartApplication()
         {
             ApplicationContainer.Resolve<QuoteUpdater>();
-            ApplicationContainer.Resolve<RabbitMqSubscriber<IReadOnlyCollection<FixQuoteModel>>>().Start();
+            ApplicationContainer.Resolve<RabbitMqSubscriber<IReadOnlyCollection<FixQuote>>>().Start();
         }
 
         private void StopApplication()
@@ -115,7 +123,7 @@ namespace Lykke.Service.FIXQuotesApi
             var aggregateLogger = new AggregateLogger();
 
             aggregateLogger.AddLog(consoleLogger);
-           
+
             // Creating slack notification service, which logs own azure queue processing messages to aggregate log
             var slackService = services.UseSlackNotificationsSenderViaAzureQueue(new AzureQueueIntegration.AzureQueueSettings
             {

@@ -69,12 +69,12 @@ namespace Lykke.Service.FIXQuotesApi.Modules
                 IsDurable = true
             };
 
-            builder.Register(c => new RabbitMqSubscriber<IReadOnlyCollection<FixQuoteModel>>(reciverRabbitMqSettings,
+            builder.Register(c => new RabbitMqSubscriber<IReadOnlyCollection<FixQuote>>(reciverRabbitMqSettings,
                             new ResilientErrorHandlingStrategy(_log, reciverRabbitMqSettings, TimeSpan.FromSeconds(10)))
-                        .SetMessageDeserializer(new JsonMessageDeserializer<IReadOnlyCollection<FixQuoteModel>>())
+                        .SetMessageDeserializer(new JsonMessageDeserializer<IReadOnlyCollection<FixQuote>>())
                         .SetMessageReadStrategy(new MessageReadWithTemporaryQueueStrategy())
                         .SetLogger(_log))
-                    .As<IMessageConsumer<IReadOnlyCollection<FixQuoteModel>>>()
+                    .As<IMessageConsumer<IReadOnlyCollection<FixQuote>>>()
                     .AsSelf()
                     .SingleInstance();
         }
@@ -85,7 +85,7 @@ namespace Lykke.Service.FIXQuotesApi.Modules
             builder.RegisterType<FixQuoteRepository>()
                 .As<IFixQuoteRepository>();
             var nested = _settings.Nested(c => c.Db.BackupConnString);
-            builder.Register(c => AzureTableStorage<FixQuoteEntity>.Create(nested, "fixQuotesBackup", _log))
+            builder.Register(c => AzureTableStorage<FixQuoteEntity>.Create(nested, "FixingQuotes", _log))
                 .As<INoSQLTableStorage<FixQuoteEntity>>();
         }
     }

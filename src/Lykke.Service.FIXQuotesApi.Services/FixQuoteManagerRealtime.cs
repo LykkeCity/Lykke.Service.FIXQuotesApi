@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Service.FIXQuotesApi.Core;
@@ -13,14 +14,14 @@ namespace Lykke.Service.FIXQuotesApi.Services
         {
         }
 
-        public override Task<IReadOnlyCollection<FixQuoteModel>> GetAll()
+        public override Task<IReadOnlyCollection<FixQuote>> GetAll(DateTime date)
         {
-            return GetAllOnT();
+            return GetAllImpl(date);
         }
 
-        public override Task<FixQuoteModel> GetById(string id)
+        public override Task<FixQuote> GetById(DateTime date, string assetPair)
         {
-            return GetByIdOnT(id);
+            return GetAllImpl(date, assetPair);
         }
     }
 }

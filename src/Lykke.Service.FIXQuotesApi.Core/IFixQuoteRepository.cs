@@ -7,8 +7,8 @@ namespace Lykke.Service.FIXQuotesApi.Core
 {
     public interface IFixQuoteRepository
     {
-        Task<IReadOnlyCollection<FixQuoteModel>> GetAllAsync(DateTime date);
-        Task<FixQuoteModel> GetById(DateTime date, string id);
-        Task SaveAsync(IEnumerable<FixQuoteModel> quotes);
+        Task<IReadOnlyCollection<FixQuote>> GetAllAsync(DateTime date);
+        Task<FixQuote> GetById(DateTime date, string assetPair);
+        Task SaveAsync(IEnumerable<FixQuote> quotes);
     }
 }

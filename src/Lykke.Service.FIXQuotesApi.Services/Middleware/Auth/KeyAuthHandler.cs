@@ -10,7 +10,7 @@ namespace Lykke.Service.FIXQuotesApi.Services.Middleware.Auth
 {
     public sealed class KeyAuthHandler : AuthenticationHandler<KeyAuthOptions>
     {
-        private const string DefaultHeaderName = "api-key";
+        private const string DefaultHeaderName = "X-API-Key";
         public const string AuthScheme = "CustomScheme";
 
 
