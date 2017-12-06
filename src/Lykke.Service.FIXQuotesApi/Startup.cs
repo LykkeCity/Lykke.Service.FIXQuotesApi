@@ -55,7 +55,7 @@ namespace Lykke.Service.FIXQuotesApi
             services.AddSwaggerGen(options =>
             {
                 options.DefaultLykkeConfiguration("v1", "FIXQuotes API");
-                options.AddSecurityDefinition("CustomScheme", new ApiKeyScheme() { In = "header", Description = "Please insert API key into field", Name = "Authorization", Type = "apiKey" });
+                options.AddSecurityDefinition("CustomScheme", new ApiKeyScheme() { In = "header", Description = "Please insert API key into field", Name = KeyAuthHandler.DefaultHeaderName, Type = "apiKey" });
             });
 
 
